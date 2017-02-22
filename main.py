@@ -4,13 +4,14 @@ import requests
 import json
 import random
 import pygeohash as pgh
-
+import re
 
 # 经度纬度，精确到小数点后五位
 longitude = 123.37814
 latitude = 41.79008
 geohash = pgh.encode(latitude, longitude, precision=11)
 # 通过offset参数来调整之前刷出了多少
+# limit参数为返回商家数量，最多30
 url = 'https://mainsite-restapi.ele.me/shopping/restaurants?extras[]=activities&geohash={0}&latitude={1}&limit=30&longitude={2}&offset=0&terminal=web'.format(geohash, latitude, longitude)
 header = {
     'Host': 'mainsite-restapi.ele.me',
@@ -33,8 +34,7 @@ for shop in data:
     shop_inf = {}
     shop_inf['id'] = shop['id']
     if 'average_cost' in shop:
-        # 出错改为re匹配数字即可
-        shop_inf['average_cost'] = shop['average_cost'].split('/')[0][1:]
+        shop_inf['average_cost'] = re.findall(r'(\w*[0-9]+)\w*', shop['average_cost'])[0]
     else:
         shop_inf['average_cost'] = 0
     shop_inf['distance'] = shop['distance']
@@ -43,6 +43,7 @@ for shop in data:
     all_shop.append(shop_inf)
 
 ran = random.choice(all_shop)
+# 从所有商家中选出一家
 print(ran)
 price_ran = {
     '1-20': [],
